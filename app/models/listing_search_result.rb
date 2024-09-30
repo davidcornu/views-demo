@@ -9,8 +9,17 @@
 #  property_ids        :bigint           is an Array
 #  listing_id          :bigint
 #
+# Indexes
+#
+#  index_listing_search_results_on_listing_id    (listing_id) UNIQUE
+#  index_listing_search_results_on_property_ids  (property_ids) USING gin
+#
 class ListingSearchResult < ApplicationRecord
   belongs_to :listing
+
+  def self.refresh
+    Scenic.database.refresh_materialized_view(table_name, concurrently: true, cascade: false)
+  end
 
   # Optional: Mark this record as read-only so we fail fast if we attempt writes
   def readonly?

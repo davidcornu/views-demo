@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2024_09_30_203111) do
+ActiveRecord::Schema[7.2].define(version: 2024_09_30_203847) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -43,7 +43,7 @@ ActiveRecord::Schema[7.2].define(version: 2024_09_30_203111) do
   add_foreign_key "product_properties", "properties"
   add_foreign_key "products", "listings"
 
-  create_view "listing_search_results", sql_definition: <<-SQL
+  create_view "listing_search_results", materialized: true, sql_definition: <<-SQL
       WITH listing_properties AS (
            SELECT products.listing_id,
               array_agg(DISTINCT product_properties.property_id) AS property_ids
@@ -68,4 +68,7 @@ ActiveRecord::Schema[7.2].define(version: 2024_09_30_203111) do
        LEFT JOIN listing_properties ON ((listing_properties.listing_id = listings.id)))
        LEFT JOIN listing_inventory_and_pricing ON ((listing_inventory_and_pricing.listing_id = listings.id)));
   SQL
+  add_index "listing_search_results", ["listing_id"], name: "index_listing_search_results_on_listing_id", unique: true
+  add_index "listing_search_results", ["property_ids"], name: "index_listing_search_results_on_property_ids", using: :gin
+
 end

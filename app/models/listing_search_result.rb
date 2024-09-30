@@ -2,10 +2,12 @@
 #
 # Table name: listing_search_results
 #
-#  in_stock     :boolean
-#  listing_name :text
-#  property_ids :bigint           is an Array
-#  listing_id   :bigint
+#  in_stock            :boolean
+#  listing_name        :text
+#  max_price_cents_usd :bigint
+#  min_price_cents_usd :bigint
+#  property_ids        :bigint           is an Array
+#  listing_id          :bigint
 #
 class ListingSearchResult < ApplicationRecord
   belongs_to :listing

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2024_09_30_195423) do
+ActiveRecord::Schema[7.2].define(version: 2024_09_30_203111) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -50,17 +50,22 @@ ActiveRecord::Schema[7.2].define(version: 2024_09_30_195423) do
              FROM (product_properties
                JOIN products ON ((product_properties.product_id = products.id)))
             GROUP BY products.listing_id
-          ), listing_in_stock AS (
-           SELECT DISTINCT products.listing_id
+          ), listing_inventory_and_pricing AS (
+           SELECT products.listing_id,
+              sum(products.inventory) AS inventory,
+              min(products.price_cents_usd) AS min_price_cents_usd,
+              max(products.price_cents_usd) AS max_price_cents_usd
              FROM products
-            WHERE (products.inventory > 0)
+            GROUP BY products.listing_id
           )
    SELECT listings.id AS listing_id,
       listings.name AS listing_name,
       listing_properties.property_ids,
-      (listing_in_stock.listing_id IS NOT NULL) AS in_stock
+      (listing_inventory_and_pricing.inventory > (0)::numeric) AS in_stock,
+      listing_inventory_and_pricing.min_price_cents_usd,
+      listing_inventory_and_pricing.max_price_cents_usd
      FROM ((listings
        LEFT JOIN listing_properties ON ((listing_properties.listing_id = listings.id)))
-       LEFT JOIN listing_in_stock ON ((listing_in_stock.listing_id = listings.id)));
+       LEFT JOIN listing_inventory_and_pricing ON ((listing_inventory_and_pricing.listing_id = listings.id)));
   SQL
 end

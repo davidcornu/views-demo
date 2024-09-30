@@ -8,6 +8,35 @@
 class Listing < ApplicationRecord
   has_many :products
 
+  def self.in_stock
+    in_stock_listings =
+      Product
+        .select(:listing_id)
+        .distinct
+        .where(inventory: 1..)
+
+    with(in_stock_listings:)
+      .joins(<<~SQL)
+        inner join in_stock_listings 
+        on in_stock_listings.listing_id = listings.id
+      SQL
+  end
+
+  def self.with_property(property)
+    listings_with_property =
+      ProductProperty
+        .where(property:)
+        .joins(:product)
+        .select("products.listing_id")
+        .distinct
+
+    with(listings_with_property:)
+      .joins(<<~SQL)
+        inner join listings_with_property
+        on listings_with_property.listing_id = listings.id
+      SQL
+  end
+
   def self.overview
     grouped_properties = ProductProperty
       .joins(:property)
